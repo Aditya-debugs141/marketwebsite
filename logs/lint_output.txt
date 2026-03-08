@@ -1,0 +1,86 @@
+﻿
+> indian_stock_news@0.1.0 lint
+> eslint
+
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\app\page.tsx
+  8:10  warning  'SectorHeatmap' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\AiConfidenceMeter.tsx
+  63:11  warning  'circumference' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\MarketHeatmap.tsx
+    7:24  warning  'ArrowDownRight' is defined but never used    @typescript-eslint/no-unused-vars
+    7:54  warning  'Search' is defined but never used            @typescript-eslint/no-unused-vars
+    7:62  warning  'Filter' is defined but never used            @typescript-eslint/no-unused-vars
+   32:35  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   33:13  warning  'root' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   33:47  warning  'index' is assigned a value but never used    @typescript-eslint/no-unused-vars
+   33:54  warning  'payload' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   33:63  warning  'colors' is assigned a value but never used   @typescript-eslint/no-unused-vars
+   33:71  warning  'rank' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   75:45  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  179:54  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  184:45  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\MarketTicker.tsx
+  26:27  warning  'oldPrice' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  28:27  warning  'change' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\MotionWrapper.tsx
+  9:8  warning  React Hook useEffect has a missing dependency: 'props.className'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\NewsCard.tsx
+  4:10  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\ThreeBackground.tsx
+   5:10  warning  'useMemo' is defined but never used       @typescript-eslint/no-unused-vars
+  57:36  warning  'data' is defined but never used          @typescript-eslint/no-unused-vars
+  57:42  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:43  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\hooks\use-socket.ts
+  28:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\hooks\use-socket.ts:28:9
+  26 |         });
+  27 |
+> 28 |         setSocket(socketInstance);
+     |         ^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |
+  30 |         return () => {
+  31 |             socketInstance.disconnect();  react-hooks/set-state-in-effect
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\lib\market-service.ts
+  45:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  82:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\scripts\check-target-price.ts
+   4:11  warning  'YahooQuote' is defined but never used    @typescript-eslint/no-unused-vars
+  21:35  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\debug-engine.ts
+  13:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\engine\sentiment-engine.ts
+  10:25  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:18  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\wss-server.ts
+  28:43  warning  'promise' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\test-nse.ts
+  23:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\test-yahoo.ts
+  20:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 34 problems (15 errors, 19 warnings)
+

@@ -1,0 +1,1 @@
+﻿test-yahoo.ts(19,76): error TS2339: Property 'regularMarketPrice' does not exist on type 'never'.

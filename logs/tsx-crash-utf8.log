@@ -1,0 +1,21 @@
+
+> indian_stock_news@0.1.0 server
+> tsx src/server/wss-server.ts
+
+C:\Users\adith\OneDrive\Desktop\market website\src\lib\market-service.ts:3
+yahooFinance.suppressNotices(['yahooSurvey']);
+             ^
+
+TypeError: yahooFinance.suppressNotices is not a function
+    at YahooFinance (C:\Users\adith\OneDrive\Desktop\market website\src\lib\market-service.ts:3:14)
+    at Object.<anonymous> (C:\Users\adith\OneDrive\Desktop\market website\src\lib\market-service.ts:54:23)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object.transformer (C:\Users\adith\OneDrive\Desktop\market website\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1504:12)
+    at require (node:internal/modules/helpers:152:16)
+
+Node.js v24.13.0

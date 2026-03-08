@@ -1,0 +1,97 @@
+﻿
+> indian_stock_news@0.1.0 lint
+> eslint
+
+node.exe : 
+(node:4780) 
+ESLintIgnoreWarning: 
+The ".eslintignore" 
+file is no longer 
+supported. Switch to 
+using the "ignores" 
+property in 
+"eslint.config.js": h
+ttps://eslint.org/doc
+s/latest/use/configur
+e/migration-guide#ign
+oring-files
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ((node:4   
+ 780) ESL...#igno    
+ring-files:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+(Use `node 
+--trace-warnings 
+...` to show where 
+the warning was 
+created)
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\AiConfidenceMeter.tsx
+  63:11  warning  'circumference' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\MarketHeatmap.tsx
+   7:24  warning  'ArrowDownRight' is defined but never used    @typescript-eslint/no-unused-vars
+   7:54  warning  'Search' is defined but never used            @typescript-eslint/no-unused-vars
+   7:62  warning  'Filter' is defined but never used            @typescript-eslint/no-unused-vars
+  34:13  warning  'root' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  34:47  warning  'index' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  34:54  warning  'payload' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  34:63  warning  'colors' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  34:71  warning  'rank' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\MarketTicker.tsx
+  26:27  warning  'oldPrice' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  28:27  warning  'change' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\MotionWrapper.tsx
+  9:8  warning  React Hook useEffect has a missing dependency: 'props.className'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\NewsCard.tsx
+  4:10  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\components\ThreeBackground.tsx
+    5:10  warning  'useMemo' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+   58:36  warning  'data' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+  119:21  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\hooks\use-socket.ts
+  28:9  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\scripts\check-target-price.ts
+   4:11  warning  'YahooQuote' is defined but never used    @typescript-eslint/no-unused-vars
+  21:35  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\debug-engine.ts
+  13:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\engine\sentiment-engine.ts
+  31:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\wss-server.ts
+  28:43  warning  'promise' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\test-nse.ts
+  23:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\test-yahoo.ts
+  20:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 24 problems (4 errors, 20 warnings)
+  0 errors and 2 warnings potentially fixable with the `--fix` option.
+

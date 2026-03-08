@@ -1,0 +1,16 @@
+﻿
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\hooks\use-socket.ts
+  28:9  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\scripts\verify-heatmap.ts
+  26:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\engine\sentiment-engine.ts
+  31:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\adith\.gemini\antigravity\scratch\indian_stock_news\src\server\wss-server.ts
+  28:43  warning  'promise' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 4 problems (1 error, 3 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+
