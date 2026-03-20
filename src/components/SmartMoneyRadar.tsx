@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Target, TrendingUp } from 'lucide-react';
+import { Target, TrendingUp, Newspaper } from 'lucide-react';
 
 interface RadarItem {
     ticker: string;
@@ -53,31 +53,51 @@ export const SmartMoneyRadar = () => {
             </div>
 
             <div className="space-y-3 relative z-10">
-                {radar.map((item, index) => (
-                    <div key={item.ticker} className="flex justify-between items-center p-3 bg-black/40 rounded-lg border border-white/5">
-                        <div className="flex items-center gap-3">
-                            <span className="text-gray-500 font-mono font-bold text-sm">{(index + 1).toString().padStart(2, '0')}</span>
-                            <div>
-                                <p className="text-white font-bold">{item.ticker}</p>
-                                <div className="flex items-center gap-1 mt-0.5">
-                                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${item.sentiment === 'Super Bullish' ? 'bg-green-500/20 text-green-400' : 'bg-green-500/10 text-green-300'
-                                        }`}>
-                                        {item.sentiment}
-                                    </span>
-                                    <span className="text-xs text-gray-500 ml-1">{item.dealsCount} deals</span>
+                {radar.map((item, index) => {
+                    const handleViewNews = () => {
+                        // Scroll to news feed and filter by ticker
+                        sessionStorage.setItem('selectedTicker', item.ticker);
+                        const newsSection = document.getElementById('news-feed');
+                        if (newsSection) {
+                            newsSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    };
+
+                    return (
+                        <div key={item.ticker} className="flex justify-between items-center p-3 bg-black/40 rounded-lg border border-white/5">
+                            <div className="flex items-center gap-3">
+                                <span className="text-gray-500 font-mono font-bold text-sm">{(index + 1).toString().padStart(2, '0')}</span>
+                                <div>
+                                    <p className="text-white font-bold">{item.ticker}</p>
+                                    <div className="flex items-center gap-1 mt-0.5">
+                                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${item.sentiment === 'Super Bullish' ? 'bg-green-500/20 text-green-400' : 'bg-green-500/10 text-green-300'
+                                            }`}>
+                                            {item.sentiment}
+                                        </span>
+                                        <span className="text-xs text-gray-500 ml-1">{item.dealsCount} deals</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="text-right">
-                            <p className="text-electric font-bold flex items-center justify-end gap-1">
-                                <TrendingUp className="w-3 h-3" />
-                                ₹{item.totalBuyingCr.toFixed(0)}Cr
-                            </p>
-                            <p className="text-[10px] text-gray-500 uppercase mt-0.5">Buying Impact</p>
+                            <div className="flex items-center gap-3">
+                                <div className="text-right">
+                                    <p className="text-electric font-bold flex items-center justify-end gap-1">
+                                        <TrendingUp className="w-3 h-3" />
+                                        ₹{item.totalBuyingCr.toFixed(0)}Cr
+                                    </p>
+                                    <p className="text-[10px] text-gray-500 uppercase mt-0.5">Buying Impact</p>
+                                </div>
+                                <button
+                                    onClick={handleViewNews}
+                                    className="ml-2 p-2 hover:bg-electric/20 rounded-lg transition-colors text-electric hover:text-electric duration-200"
+                                    title="View related news"
+                                >
+                                    <Newspaper className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

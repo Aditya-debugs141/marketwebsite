@@ -1,7 +1,7 @@
 import { fetchSimulatedDeals } from '../data-sources/simulated-deals';
 import { dealCache, DealData } from '../cache/deal-cache';
 import { calculateImpactScore, ImpactResult } from './impact-engine';
-import { SentimentEngine, DealSentimentResult } from './sentiment-engine';
+import { analyzeDealSentiment, DealSentimentResult } from './deal-sentiment-rules';
 
 export interface ProcessedDeal extends DealData {
     impact: ImpactResult;
@@ -18,12 +18,9 @@ export interface RadarData {
 
 class DealEngine {
     private static instance: DealEngine;
-    private sentimentEngine: SentimentEngine;
     private isFetching = false;
 
-    private constructor() {
-        this.sentimentEngine = SentimentEngine.getInstance();
-    }
+    private constructor() { }
 
     public static getInstance() {
         if (!DealEngine.instance) {
@@ -37,8 +34,6 @@ class DealEngine {
         this.isFetching = true;
 
         try {
-            await this.sentimentEngine.init();
-
             // Fetch from data sources
             // Rely exclusively on the authentic MoneyControl Python Scraper
             const allRaw = await fetchSimulatedDeals();
@@ -67,7 +62,7 @@ class DealEngine {
             // Mocking current market price matching deal price for offline proxy
             // Ideally map to real-time socket price 
             const cmp = deal.price;
-            const sentiment = this.sentimentEngine.analyzeDeal(deal, cmp);
+            const sentiment = analyzeDealSentiment(deal, cmp);
             const impact = calculateImpactScore(deal);
 
             let alert;
@@ -94,7 +89,7 @@ class DealEngine {
         const accumulationMap = new Map<string, { total: number, sentiment: string, count: number }>();
 
         for (const deal of rawDeals) {
-            const sentimentObj = this.sentimentEngine.analyzeDeal(deal, deal.price);
+            const sentimentObj = analyzeDealSentiment(deal, deal.price);
             if (['Super Bullish', 'Bullish'].includes(sentimentObj.sentiment)) {
                 const existing = accumulationMap.get(deal.ticker) || { total: 0, sentiment: sentimentObj.sentiment, count: 0 };
                 existing.total += deal.valueCr;
