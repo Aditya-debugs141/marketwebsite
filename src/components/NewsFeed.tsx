@@ -12,14 +12,15 @@ interface NewsFeedProps {
 
 export function NewsFeed({ initialNews }: NewsFeedProps) {
     const [news, setNews] = useState<NewsItem[]>(initialNews);
-    const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+    const [selectedTicker, setSelectedTicker] = useState<string | null>(() => {
+        if (typeof window === 'undefined') return null;
+        return sessionStorage.getItem('selectedTicker');
+    });
     const { socket } = useSocket();
 
     useEffect(() => {
-        // Check for selected ticker from sessionStorage
-        const ticker = sessionStorage.getItem('selectedTicker');
-        if (ticker) {
-            setSelectedTicker(ticker);
+        // Cleanup once read during initialization
+        if (typeof window !== 'undefined') {
             sessionStorage.removeItem('selectedTicker');
         }
     }, []);
@@ -52,7 +53,7 @@ export function NewsFeed({ initialNews }: NewsFeedProps) {
     const filteredNews = selectedTicker 
         ? news.filter(item => 
             item.title?.toUpperCase().includes(selectedTicker.toUpperCase()) ||
-            item.description?.toUpperCase().includes(selectedTicker.toUpperCase())
+            item.contentSnippet?.toUpperCase().includes(selectedTicker.toUpperCase())
         )
         : news;
 
