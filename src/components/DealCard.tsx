@@ -83,13 +83,13 @@ export const DealCard: React.FC<DealDataProps> = ({ deal }) => {
 
             {/* Deal Details */}
             <div className="grid grid-cols-2 gap-4 text-sm mt-3 mb-2">
-                <div>
+                <div className="min-w-0">
                     <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-0.5">Buyer</p>
-                    <p className="font-medium text-white line-clamp-2 leading-tight" title={deal.buyer}>{deal.buyer}</p>
+                    <p className="font-medium text-white text-sm break-words whitespace-normal" title={deal.buyer}>{deal.buyer}</p>
                 </div>
-                <div>
+                <div className="min-w-0">
                     <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-0.5">Seller</p>
-                    <p className="font-medium text-gray-300 line-clamp-2 leading-tight" title={deal.seller}>{deal.seller}</p>
+                    <p className="font-medium text-gray-300 text-sm break-words whitespace-normal" title={deal.seller}>{deal.seller}</p>
                 </div>
             </div>
 
