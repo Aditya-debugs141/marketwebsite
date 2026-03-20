@@ -26,7 +26,7 @@ export async function fetchBseDeals(): Promise<Omit<DealData, 'id'>[]> {
             const quantity = Math.floor(Math.random() * 200000) + 5000;
             const valueCr = (livePrice * quantity) / 10000000;
 
-            let buyer = getRandomInstitution();
+            const buyer = getRandomInstitution();
             let seller = getRandomInstitution();
             while (buyer === seller) seller = getRandomInstitution();
 

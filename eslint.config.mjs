@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Project-specific legacy/test fixtures
+    "src/scripts/**",
+    "src/lib/market-service.js",
+    "**/*.vsix",
   ]),
 ]);
 

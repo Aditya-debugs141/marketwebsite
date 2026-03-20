@@ -1,6 +1,15 @@
 import YahooFinance from 'yahoo-finance2';
 const yahooFinance = new YahooFinance();
 
+interface YahooLiteQuote {
+    symbol: string;
+    shortName?: string;
+    regularMarketPrice?: number;
+    regularMarketChangePercent?: number;
+    marketCap?: number;
+    regularMarketVolume?: number;
+}
+
 export interface SectorData {
     name: string;
     change: number;
@@ -35,9 +44,9 @@ export async function fetchSectorData(): Promise<SectorData[]> {
     try {
         // Provide standard index values as fallback
         const indexSymbols = ['^NSEI', '^NSEBANK', '^CNXIT'];
-        const quotes = await yahooFinance.quote(indexSymbols) as any[];
+        const quotes = await yahooFinance.quote(indexSymbols) as YahooLiteQuote[];
 
-        return quotes.map((q: any) => ({
+        return quotes.map((q: YahooLiteQuote) => ({
             name: q.shortName || q.symbol,
             change: q.regularMarketChangePercent || 0,
             value: q.regularMarketPrice || 0,
@@ -55,14 +64,14 @@ export async function fetchDeepMarketData(): Promise<MarketHierarchy[]> {
         const allSymbols = Object.values(SECTOR_STOCKS).flat();
 
         // Single batch request to avoid Rate Limits (429)
-        const allQuotes = await yahooFinance.quote(allSymbols) as any[];
+        const allQuotes = await yahooFinance.quote(allSymbols) as YahooLiteQuote[];
         const quoteMap = new Map(allQuotes.map(q => [q.symbol, q]));
 
         for (const [sector, symbols] of Object.entries(SECTOR_STOCKS)) {
             try {
                 const quotes = symbols.map(sym => quoteMap.get(sym)).filter(Boolean);
 
-                const children: StockData[] = quotes.map((s: any) => ({
+                const children: StockData[] = quotes.map((s: YahooLiteQuote) => ({
                     name: s.symbol.replace('.NS', ''),
                     value: s.marketCap || (s.regularMarketPrice || 0) * (s.regularMarketVolume || 0),
                     price: s.regularMarketPrice || 0,

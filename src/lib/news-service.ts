@@ -1,6 +1,6 @@
 import Parser from 'rss-parser';
 import { analyzeImpact, ImpactAnalysis } from './impact-analyzer';
-import { getStockPrice, StockPrice } from './stock-service';
+import { getStockPrice, resolveIndianTicker, StockPrice } from './stock-service';
 
 export interface NewsItem {
     title: string;
@@ -17,6 +17,7 @@ export interface NewsItem {
         reasoning?: string;
     };
     relatedStock?: StockPrice | null;
+    relatedSymbol?: string | null;
 }
 
 const parser = new Parser();
@@ -42,6 +43,7 @@ const TICKER_MAP: Record<string, string> = {
     'Mphasis': 'MPHASIS',
 
     // Banking & Finance
+    'Indian Bank': 'INDIANB',
     'HDFC Bank': 'HDFCBANK', 'HDFC': 'HDFCBANK',
     'ICICI': 'ICICIBANK', 'ICICI Bank': 'ICICIBANK',
     'SBI': 'SBIN', 'State Bank': 'SBIN',
@@ -164,6 +166,20 @@ function extractTicker(text: string): string | null {
     return null;
 }
 
+function extractCompanyHint(title: string): string | null {
+    // Try to capture company name before action verbs/common connectors
+    const splitRegex = /\b(to|will|on|as|after|amid|in|for|says|plans|launch|raises|cuts|buys|sells|stake|deal)\b/i;
+    const head = title.split(splitRegex)[0]?.trim() || title.trim();
+
+    const cleaned = head
+        .replace(/[^A-Za-z0-9&.\-\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (cleaned.length < 3) return null;
+    return cleaned;
+}
+
 const BLACKLIST_KEYWORDS = [
     'us stocks', 'wall street', 'dow jones', 'nasdaq', 's&p 500',
     'global markets', 'asia stocks', 'bitcoin', 'crypto', 'ethereum',
@@ -218,7 +234,15 @@ async function fetchFromSource(url: string, sourceName: NewsItem['source']): Pro
             const impact = analyzeImpact(title, contentSnippet);
 
             let relatedStock: StockPrice | null = null;
-            const ticker = extractTicker(title);
+            let ticker = extractTicker(`${title} ${contentSnippet}`);
+
+            // Fallback: resolve via Yahoo symbol search when map-based match is missing
+            if (!ticker) {
+                const companyHint = extractCompanyHint(title);
+                if (companyHint) {
+                    ticker = await resolveIndianTicker(companyHint);
+                }
+            }
 
             // Fetch live price if a ticker is found
             if (ticker) {
@@ -233,7 +257,8 @@ async function fetchFromSource(url: string, sourceName: NewsItem['source']): Pro
                 source: sourceName,
                 guid: item.guid || item.link,
                 impact,
-                relatedStock
+                relatedStock,
+                relatedSymbol: ticker
             } as NewsItem;
         }));
 

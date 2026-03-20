@@ -21,7 +21,7 @@ interface MarketHierarchy {
 // Custom specialized Treemap Cell
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomizedContent = (props: any) => {
-    const { depth, x, y, width, height, index, name, change, price } = props;
+    const { depth, x, y, width, height, name, change } = props;
 
     // Failsafe for uncalculated zero-width blocks
     if (width == null || height == null || width <= 0 || height <= 0) return null;

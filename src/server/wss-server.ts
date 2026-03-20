@@ -3,7 +3,6 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import express from 'express';
 import cors from 'cors';
-import { SentimentEngine } from './engine/sentiment-engine';
 import { fetchNews } from '../lib/news-service';
 
 const PORT = 3001;
@@ -17,10 +16,6 @@ const io = new Server(httpServer, {
         methods: ["GET", "POST"]
     }
 });
-
-// Initialize AI Engine
-const aiEngine = SentimentEngine.getInstance();
-aiEngine.init().catch(err => console.error('AI Init Failed:', err));
 
 process.on('uncaughtException', (err) => {
     console.error('UNCAUGHT EXCEPTION:', err);
@@ -146,22 +141,13 @@ async function runJobs() {
         }
     }
 
-    // 3. AI News Analysis (Every 30s) - Runs 24/7
+    // 3. News Updates (Every 30s) - Runs 24/7
     if (!isFetchingNews && now - lastNewsTime > 30000) {
         isFetchingNews = true;
         console.log(`[${status.timestamp}] Fetching News... Market: ${status.isOpen ? 'OPEN' : 'CLOSED'}`);
         try {
             const newsItems = await fetchNews();
-            // Analyze top 5 news items with AI
-            const analyzedNews = await Promise.all(newsItems.slice(0, 5).map(async (item) => {
-                const sentiment = await aiEngine.analyze(item.title);
-                return {
-                    ...item,
-                    ai_sentiment: sentiment
-                };
-            }));
-
-            io.emit('news_update', analyzedNews);
+            io.emit('news_update', newsItems.slice(0, 5));
             lastNewsTime = Date.now();
         } catch (e) {
             console.error('News Job Failed:', e);

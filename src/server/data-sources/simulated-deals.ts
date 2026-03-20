@@ -35,7 +35,7 @@ function randomElement<T>(arr: T[]): T {
 }
 
 // Keep a persistent list in memory so we don't flood the UI with 100% new deals every 10 seconds
-let persistentDeals: Omit<DealData, 'id'>[] = [];
+const persistentDeals: Omit<DealData, 'id'>[] = [];
 let initialized = false;
 
 export async function fetchSimulatedDeals(): Promise<Omit<DealData, 'id'>[]> {
