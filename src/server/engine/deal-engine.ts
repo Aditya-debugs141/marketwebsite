@@ -2,11 +2,14 @@ import { fetchSimulatedDeals } from '../data-sources/simulated-deals';
 import { dealCache, DealData } from '../cache/deal-cache';
 import { calculateImpactScore, ImpactResult } from './impact-engine';
 import { analyzeDealSentiment, DealSentimentResult } from './deal-sentiment-rules';
+import { getStockPrice } from '../../lib/stock-service';
 
 export interface ProcessedDeal extends DealData {
     impact: ImpactResult;
     sentiment: DealSentimentResult;
     alert?: string;
+    cmp?: number;
+    cmpChangePercent?: number;
 }
 
 export interface RadarData {
@@ -19,8 +22,24 @@ export interface RadarData {
 class DealEngine {
     private static instance: DealEngine;
     private isFetching = false;
+    private liveQuoteCache = new Map<string, { price: number; changePercent: number; ts: number }>();
+    private inFlightQuotePromises = new Map<string, Promise<{ price: number; changePercent: number } | null>>();
+    private readonly quoteCacheTtlMs = 20_000;
+    private angelOneService: any = null;
 
-    private constructor() { }
+    private constructor() { 
+        this.initAngelOneService();
+    }
+
+    private async initAngelOneService() {
+        try {
+            const { AngelOneService } = await import('../angel-one-service');
+            this.angelOneService = new AngelOneService();
+            console.log('✅ AngelOne service initialized for real-time pricing');
+        } catch (error) {
+            console.warn('⚠️ AngelOne service failed to initialize:', error);
+        }
+    }
 
     public static getInstance() {
         if (!DealEngine.instance) {
@@ -47,21 +66,81 @@ class DealEngine {
             // Deduplicate via cache
             dealCache.addDeals(newDeals);
 
-            return this.getProcessedFeed();
+            return await this.getProcessedFeed();
         } catch (e) {
             console.error("Error refreshing deals:", e);
-            return this.getProcessedFeed();
+            return await this.getProcessedFeed();
         } finally {
             this.isFetching = false;
         }
     }
 
-    public getProcessedFeed(): ProcessedDeal[] {
+    private async getLiveQuote(ticker: string): Promise<{ price: number; changePercent: number } | null> {
+        const now = Date.now();
+        const cached = this.liveQuoteCache.get(ticker);
+
+        if (cached && now - cached.ts < this.quoteCacheTtlMs) {
+            return { price: cached.price, changePercent: cached.changePercent };
+        }
+
+        const inFlight = this.inFlightQuotePromises.get(ticker);
+        if (inFlight) return inFlight;
+
+        const quotePromise = (async () => {
+            try {
+                // Try AngelOne first for real-time NSE data (if available)
+                if (this.angelOneService) {
+                    try {
+                        const angelData = await this.angelOneService.getStockLtp(ticker);
+                        if (angelData) {
+                            console.log(`✅ AngelOne real-time: ${ticker} = ₹${angelData.price}`);
+                            const payload = {
+                                price: angelData.price,
+                                changePercent: angelData.changePercent
+                            };
+                            this.liveQuoteCache.set(ticker, { ...payload, ts: Date.now() });
+                            return payload;
+                        }
+                    } catch (angelError) {
+                        console.warn(`AngelOne failed for ${ticker}:`, angelError);
+                    }
+                }
+
+                // Fallback to Yahoo Finance via stock service
+                console.log(`📊 Using stock service fallback for ${ticker}`);
+                const live = await getStockPrice(ticker);
+                if (!live) return null;
+
+                const payload = {
+                    price: live.price,
+                    changePercent: live.changePercent
+                };
+
+                this.liveQuoteCache.set(ticker, { ...payload, ts: Date.now() });
+                return payload;
+            } catch (e) {
+                console.warn(`Live quote fetch failed for ${ticker}:`, e);
+                return null;
+            } finally {
+                this.inFlightQuotePromises.delete(ticker);
+            }
+        })();
+
+        this.inFlightQuotePromises.set(ticker, quotePromise);
+        return quotePromise;
+    }
+
+    public async getProcessedFeed(): Promise<ProcessedDeal[]> {
         const rawDeals = dealCache.getRecentDeals(100);
-        return rawDeals.map(deal => {
-            // Mocking current market price matching deal price for offline proxy
-            // Ideally map to real-time socket price 
-            const cmp = deal.price;
+        const uniqueTickers = Array.from(new Set(rawDeals.map((d) => d.ticker)));
+        const quoteEntries = await Promise.all(
+            uniqueTickers.map(async (ticker) => [ticker, await this.getLiveQuote(ticker)] as const)
+        );
+        const quoteMap = new Map<string, { price: number; changePercent: number } | null>(quoteEntries);
+
+        return rawDeals.map((deal) => {
+            const liveQuote = quoteMap.get(deal.ticker) || null;
+            const cmp = liveQuote?.price ?? deal.price;
             const sentiment = analyzeDealSentiment(deal, cmp);
             const impact = calculateImpactScore(deal);
 
@@ -79,6 +158,8 @@ class DealEngine {
                 ...deal,
                 impact,
                 sentiment,
+                cmp: liveQuote?.price,
+                cmpChangePercent: liveQuote?.changePercent,
                 alert
             };
         });

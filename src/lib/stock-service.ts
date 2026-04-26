@@ -3,6 +3,25 @@ import YahooFinance from 'yahoo-finance2';
 const yahooFinance = new YahooFinance();
 const symbolLookupCache = new Map<string, string | null>();
 
+interface YahooSearchQuote {
+    symbol?: string;
+    exchange?: string;
+    exchDisp?: string;
+}
+
+interface YahooSearchResponse {
+    quotes?: YahooSearchQuote[];
+}
+
+function getSearchQuotes(result: unknown): YahooSearchQuote[] {
+    if (!result || typeof result !== 'object') return [];
+
+    const maybeQuotes = (result as YahooSearchResponse).quotes;
+    if (!Array.isArray(maybeQuotes)) return [];
+
+    return maybeQuotes.filter((q) => q && typeof q === 'object');
+}
+
 // Define a local interface for the expected Yahoo Finance response
 // preventing deep import issues with the library
 interface YahooQuote {
@@ -90,16 +109,19 @@ export async function getStockPrice(symbol: string): Promise<StockPrice | null> 
     try {
         // Ensure symbol has .NS (NSE) or .BO (BSE) suffix if not present
         // Defaulting to NSE for Indian stocks
-        // SKip indices which start with ^
+        // Skip indices which start with ^
         const formattedSymbol = symbol.startsWith('^') || symbol.endsWith('.NS') || symbol.endsWith('.BO')
             ? symbol
             : `${symbol}.NS`;
 
-        // Fetch both quote (for real-time price) and financialData (for target price)
-        // Indices (starting with ^) don't have financialData/targets, so skip for them
         const isIndex = formattedSymbol.startsWith('^');
+        const isNSE = formattedSymbol.endsWith('.NS');
 
-        // Fetch both quote and summary safely
+        // Skip AngelOne integration in stock-service to avoid build issues
+        // AngelOne is handled directly in deal-engine for server-side processing
+        console.log(`📊 Fetching ${symbol} from Yahoo Finance`);
+        
+        // Use Yahoo Finance for all cases
         const quotePromise = yahooFinance.quote(formattedSymbol).catch(e => {
             console.warn(`Failed to fetch quote for ${formattedSymbol}: ${e.message}`);
             return null;
@@ -114,12 +136,9 @@ export async function getStockPrice(symbol: string): Promise<StockPrice | null> 
 
         const [quote, summary] = await Promise.all([quotePromise, summaryPromise]);
 
-        // console.log(`[${new Date().toISOString()}] Fetched ${formattedSymbol}`);
-
         if (!quote) return null;
 
         // Yahoo Finance 2 types can be tricky, safe casting
-        // We expect a Quote object with price-related properties
         const stockQuote = quote as unknown as YahooQuote;
 
         let targetPrice: number | undefined;
@@ -225,15 +244,15 @@ export async function resolveIndianTicker(query: string): Promise<string | null>
     }
 
     try {
-        const result = await yahooFinance.search(query, { quotesCount: 10, newsCount: 0 }) as {
-            quotes?: Array<{
-                symbol?: string;
-                exchange?: string;
-                exchDisp?: string;
-            }>;
-        };
+        // Yahoo occasionally returns SearchResult payloads that fail strict schema validation.
+        // Disable per-call validation for search only and parse defensively.
+        const result = await yahooFinance.search(
+            query,
+            { quotesCount: 10, newsCount: 0 },
+            { validateResult: false }
+        );
 
-        const quotes = result?.quotes || [];
+        const quotes = getSearchQuotes(result);
         const preferred = quotes.find((q) => {
             const symbol = (q.symbol || '').toUpperCase();
             const exchange = (q.exchange || '').toUpperCase();
@@ -267,9 +286,17 @@ export async function resolveIndianTicker(query: string): Promise<string | null>
 }
 
 export async function getMarketIndices(): Promise<StockPrice[]> {
-    // Added Stocks to ensure ticker isn't empty if indices fail
-    const symbols = ['^NSEI', '^BSESN', 'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS'];
-    const promises = symbols.map(s => getStockPrice(s));
-    const results = await Promise.all(promises);
-    return results.filter((r): r is StockPrice => r !== null);
+    // Prefer market indices for ticker accuracy/consistency.
+    const indexSymbols = ['^NSEI', '^BSESN', '^NSEBANK', '^CNXIT', '^CNXAUTO'];
+    const indexResults = await Promise.all(indexSymbols.map((s) => getStockPrice(s)));
+    const validIndexResults = indexResults.filter((r): r is StockPrice => r !== null);
+
+    if (validIndexResults.length > 0) {
+        return validIndexResults;
+    }
+
+    // Last-resort fallback only if index endpoints fail completely.
+    const fallbackStockSymbols = ['RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS'];
+    const fallbackResults = await Promise.all(fallbackStockSymbols.map((s) => getStockPrice(s)));
+    return fallbackResults.filter((r): r is StockPrice => r !== null);
 }

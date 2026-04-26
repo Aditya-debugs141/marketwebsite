@@ -24,9 +24,9 @@ const parser = new Parser();
 
 const ET_RSS_URL = 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms';
 const MONEYCONTROL_RSS_URL = 'https://www.moneycontrol.com/rss/marketreports.xml';
-const LIVEMINT_RSS_URL = 'https://www.livemint.com/rss/money/markets';
+// const LIVEMINT_RSS_URL = 'https://www.livemint.com/rss/money/markets'; // Not currently used
 const CNBC_RSS_URL = 'https://www.cnbctv18.com/commonfeeds/v1/cns/market.xml';
-const BS_RSS_URL = 'https://www.business-standard.com/rss/markets-106.rss';
+// const BS_RSS_URL = 'https://www.business-standard.com/rss/markets-106.rss'; // Not currently used
 const REUTERS_RSS_URL = 'https://news.google.com/rss/search?q=source:reuters+market+india&hl=en-IN&gl=IN&ceid=IN:en';
 
 // Common Indian stock tickers mapping (Expanded for better coverage)

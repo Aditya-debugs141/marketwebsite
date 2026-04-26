@@ -1,4 +1,4 @@
-import { fetchNews } from './src/lib/news-service';
+import { fetchNews, NewsItem } from '../../lib/news-service';
 
 async function testNews() {
     console.log("Fetching news...");
@@ -6,7 +6,7 @@ async function testNews() {
     console.log(`Found ${news.length} relevant news items.`);
     if (news.length > 0) {
         console.log("Latest 5 items:");
-        news.slice(0, 5).forEach((item, i) => {
+        news.slice(0, 5).forEach((item: NewsItem, i: number) => {
             console.log(`\n[${i + 1}] ${item.title}`);
             console.log(`Source: ${item.source}`);
             console.log(`Published: ${item.pubDate} (Actual time now: ${new Date().toISOString()})`);

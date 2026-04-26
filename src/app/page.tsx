@@ -7,7 +7,7 @@ import { Activity } from 'lucide-react';
 import MarketHeatmap from '@/components/MarketHeatmap';
 import { AiConfidenceMeter } from '@/components/AiConfidenceMeter';
 import { MarketStatusBadge } from '@/components/MarketStatusBadge';
-import { MotionDiv, MotionHeader, MotionSection } from '@/components/MotionWrapper';
+import { MotionDiv, MotionSection } from '@/components/MotionWrapper';
 import { BlockBulkDealTracker } from '@/components/BlockBulkDealTracker';
 import { SmartMoneyRadar } from '@/components/SmartMoneyRadar';
 

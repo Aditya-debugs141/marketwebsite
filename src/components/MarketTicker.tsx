@@ -17,18 +17,26 @@ export function MarketTicker({ indices }: MarketTickerProps) {
     useEffect(() => {
         if (!socket) return;
 
-        socket.on('price_update', (data: { symbol: string, price: string }) => {
+        socket.on('price_update', (data: { symbol: string, price: number | string }) => {
             setLiveIndices(prev => prev.map(item => {
                 // Approximate matching for Demo purposes
                 // Ideally, backend sends full object or we fetch it
                 if (item.symbol === data.symbol || (item.symbol === '^NSEI' && data.symbol === '^NSEI')) {
-                    const newPrice = parseFloat(data.price);
-                    // Simple change calc if not provided
+                    const parsedPrice = typeof data.price === 'string' ? parseFloat(data.price) : data.price;
+
+                    if (Number.isNaN(parsedPrice)) {
+                        return item;
+                    }
+
+                    const prevPrice = item.price;
+                    const change = parsedPrice - prevPrice;
+                    const changePercent = prevPrice !== 0 ? (change / prevPrice) * 100 : 0;
 
                     return {
                         ...item,
-                        price: newPrice,
-                        // change: change, // Update change if we had reference
+                        price: parsedPrice,
+                        change,
+                        changePercent,
                     };
                 }
                 return item;
@@ -44,7 +52,9 @@ export function MarketTicker({ indices }: MarketTickerProps) {
     const getDisplayName = (symbol: string) => {
         if (symbol === '^NSEI') return 'NIFTY 50';
         if (symbol === '^BSESN') return 'SENSEX';
-        if (symbol === 'NIFTY_BANK') return 'BANK NIFTY';
+        if (symbol === '^NSEBANK' || symbol === 'NIFTY_BANK') return 'BANK NIFTY';
+        if (symbol === '^CNXIT') return 'NIFTY IT';
+        if (symbol === '^CNXAUTO') return 'NIFTY AUTO';
         return symbol.replace('.NS', '').replace('.BO', '');
     };
 

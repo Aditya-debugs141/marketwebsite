@@ -85,10 +85,14 @@ function generateSingleDeal(isHistorical: boolean): Omit<DealData, 'id'> {
 
     const dealType = quantity > 1000000 ? 'Block' : 'Bulk';
 
-    let timestamp = Date.now();
+    const now = Date.now();
+    let marketTimestamp = now;
     if (isHistorical) {
         // Random time within the last 8 hours
-        timestamp -= Math.floor(Math.random() * 8 * 60 * 60 * 1000);
+        marketTimestamp -= Math.floor(Math.random() * 8 * 60 * 60 * 1000);
+    } else {
+        // For fresh detections, use a realistic deal-execution time a bit before ingestion
+        marketTimestamp -= Math.floor(Math.random() * 5 * 60 * 1000);
     }
 
     return {
@@ -101,7 +105,8 @@ function generateSingleDeal(isHistorical: boolean): Omit<DealData, 'id'> {
         price,
         valueCr: (price * quantity) / 10000000,
         stakePercent: +(Math.random() * 3.5).toFixed(2),
-        timestamp,
-        source: stock.exchange
+        marketTimestamp,
+        timestamp: now,
+        source: stock.exchange as "NSE" | "BSE"
     };
 }

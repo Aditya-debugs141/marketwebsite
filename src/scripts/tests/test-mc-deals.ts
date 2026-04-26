@@ -14,8 +14,9 @@ async function fetchMoneyControlDeals() {
         const text = await res.text();
         console.log("Successfully fetched MC HTML. Length:", text.length);
 
-        // Very basic test to see if we can find table rows
-        const matches = text.match(/<tr>\s*<td>.*?<\/tr>/gs);
+        // Very basic test to see if we can find table rows (using 'gms' flags separately for ES2017 compatibility)
+        const regex = new RegExp('<tr>\\s*<td>.*?<\\/tr>', 'gs');
+        const matches = text.match(regex);
         console.log("Found table rows:", matches ? matches.length : 0);
 
         if (matches && matches.length > 0) {

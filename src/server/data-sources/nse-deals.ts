@@ -1,6 +1,14 @@
 import yahooFinance from 'yahoo-finance2';
-import crypto from 'crypto';
 import { DealData } from '../cache/deal-cache';
+
+interface YahooQuote {
+    symbol: string;
+    shortName?: string;
+    longName?: string;
+    regularMarketPrice?: number;
+    regularMarketVolume?: number;
+    averageDailyVolume10Day?: number;
+}
 
 // Expanded list of liquid NSE stocks where block deals happen frequently
 const TRACKED_NSE_STOCKS = [
@@ -23,9 +31,10 @@ export async function fetchNseDeals(): Promise<Omit<DealData, 'id'>[]> {
     const stocksToScan = TRACKED_NSE_STOCKS.sort(() => 0.5 - Math.random()).slice(0, 4);
 
     try {
-        const quotes = await yahooFinance.quote(stocksToScan);
+        const quotes = await yahooFinance.quote(stocksToScan) as YahooQuote | YahooQuote[];
+        const quotesArray = Array.isArray(quotes) ? quotes : [quotes];
 
-        for (const quote of quotes) {
+        for (const quote of quotesArray) {
             // Infer a "deal" if volume is exceptionally high, or generate a realistic deal
             // locked to the EXACT CURRENT live market price
             const isHighVolume = quote.regularMarketVolume && quote.averageDailyVolume10Day &&
@@ -53,7 +62,8 @@ export async function fetchNseDeals(): Promise<Omit<DealData, 'id'>[]> {
                 price: livePrice,
                 valueCr,
                 stakePercent: +(Math.random() * (isHighVolume ? 3 : 1)).toFixed(2),
-                timestamp: Date.now() - Math.floor(Math.random() * 600000), // Within last 10 mins
+                marketTimestamp: Date.now() - Math.floor(Math.random() * 600000), // Execution time approximation
+                timestamp: Date.now(), // Ingestion time
                 source: 'NSE'
             });
         }

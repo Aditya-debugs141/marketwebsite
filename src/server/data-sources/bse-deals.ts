@@ -1,6 +1,15 @@
 import yahooFinance from 'yahoo-finance2';
 import { DealData } from '../cache/deal-cache';
 
+interface YahooQuote {
+    symbol: string;
+    shortName?: string;
+    longName?: string;
+    regularMarketPrice?: number;
+    regularMarketVolume?: number;
+    averageDailyVolume10Day?: number;
+}
+
 const TRACKED_BSE_STOCKS = [
     'MRF.BO', 'PAGEIND.BO', 'HONAUT.BO', 'BOSCHLTD.BO', 'ABB.BO',
     'SIEMENS.BO', '3MINDIA.BO', 'HAL.BO', 'BEL.BO', 'TRENT.BO'
@@ -19,9 +28,10 @@ export async function fetchBseDeals(): Promise<Omit<DealData, 'id'>[]> {
     const stocksToScan = TRACKED_BSE_STOCKS.sort(() => 0.5 - Math.random()).slice(0, 3);
 
     try {
-        const quotes = await yahooFinance.quote(stocksToScan);
+        const quotes = await yahooFinance.quote(stocksToScan) as YahooQuote | YahooQuote[];
+        const quotesArray = Array.isArray(quotes) ? quotes : [quotes];
 
-        for (const quote of quotes) {
+        for (const quote of quotesArray) {
             const livePrice = quote.regularMarketPrice || 10000;
             const quantity = Math.floor(Math.random() * 200000) + 5000;
             const valueCr = (livePrice * quantity) / 10000000;
@@ -40,7 +50,8 @@ export async function fetchBseDeals(): Promise<Omit<DealData, 'id'>[]> {
                 price: livePrice,
                 valueCr,
                 stakePercent: +(Math.random() * 1.5).toFixed(2),
-                timestamp: Date.now() - Math.floor(Math.random() * 1800000), // Within last 30 mins
+                marketTimestamp: Date.now() - Math.floor(Math.random() * 1800000), // Execution time approximation
+                timestamp: Date.now(), // Ingestion time
                 source: 'BSE'
             });
         }

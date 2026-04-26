@@ -18,6 +18,57 @@ interface MarketHierarchy {
     children: StockData[];
 }
 
+function isFiniteNumber(value: unknown): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+}
+
+function normalizeHeatmapData(input: unknown): MarketHierarchy[] {
+    if (!Array.isArray(input)) return [];
+
+    return input
+        .map((sector): MarketHierarchy | null => {
+            if (!sector || typeof sector !== 'object') return null;
+
+            const sectorObj = sector as { name?: unknown; children?: unknown; value?: unknown };
+            const name = typeof sectorObj.name === 'string' ? sectorObj.name : 'Unknown';
+            const rawChildren = Array.isArray(sectorObj.children) ? sectorObj.children : [];
+
+            const children: StockData[] = rawChildren
+                .map((child): StockData | null => {
+                    if (!child || typeof child !== 'object') return null;
+                    const c = child as Partial<StockData>;
+                    if (typeof c.name !== 'string') return null;
+
+                    const price = isFiniteNumber(c.price) ? c.price : 0;
+                    const change = isFiniteNumber(c.change) ? c.change : 0;
+                    const volume = isFiniteNumber(c.volume) ? c.volume : 0;
+                    const fallbackValue = Math.max(price * Math.max(volume, 1), 1);
+                    const value = isFiniteNumber(c.value) && c.value > 0 ? c.value : fallbackValue;
+
+                    return {
+                        name: c.name,
+                        value,
+                        price,
+                        change,
+                        volume
+                    };
+                })
+                .filter((x): x is StockData => Boolean(x));
+
+            if (children.length === 0) return null;
+
+            const computedSectorValue = children.reduce((acc, child) => acc + child.value, 0);
+            const sectorValue = isFiniteNumber(sectorObj.value) && sectorObj.value > 0 ? sectorObj.value : computedSectorValue;
+
+            return {
+                name,
+                value: sectorValue,
+                children
+            };
+        })
+        .filter((x): x is MarketHierarchy => Boolean(x));
+}
+
 // Custom specialized Treemap Cell
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomizedContent = (props: any) => {
@@ -127,11 +178,48 @@ function MarketHeatmap() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let active = true;
+
+        const fetchInitialHeatmap = async () => {
+            try {
+                const res = await fetch('/api/heatmap', { cache: 'no-store' });
+                const json = await res.json();
+                const normalized = normalizeHeatmapData(json?.data);
+
+                if (active && normalized.length > 0) {
+                    setData(normalized);
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.warn('Initial heatmap fetch failed:', error);
+            } finally {
+                if (active) {
+                    setLoading((prev) => (data.length === 0 ? prev : false));
+                }
+            }
+        };
+
+        fetchInitialHeatmap();
+
+        // Safety valve: never keep spinner forever
+        const timer = setTimeout(() => {
+            if (active) setLoading(false);
+        }, 8000);
+
+        return () => {
+            active = false;
+            clearTimeout(timer);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         if (!socket) return;
 
         socket.on('heatmap_update', (incomingData: MarketHierarchy[]) => {
-            if (incomingData && incomingData.length > 0) {
-                setData(incomingData);
+            const normalized = normalizeHeatmapData(incomingData);
+            if (normalized.length > 0) {
+                setData(normalized);
                 setLoading(false);
             }
         });
@@ -183,6 +271,12 @@ function MarketHeatmap() {
                     </div>
                 )}
             </div>
+
+            {!loading && data.length === 0 && (
+                <p className="mt-3 text-xs text-amber-300/80">
+                    Heatmap data source is temporarily unavailable. Retrying via live socket updates...
+                </p>
+            )}
         </div>
     );
 }

@@ -69,7 +69,7 @@ export async function fetchDeepMarketData(): Promise<MarketHierarchy[]> {
 
         for (const [sector, symbols] of Object.entries(SECTOR_STOCKS)) {
             try {
-                const quotes = symbols.map(sym => quoteMap.get(sym)).filter(Boolean);
+                const quotes = symbols.map(sym => quoteMap.get(sym)).filter((q): q is YahooLiteQuote => q !== undefined);
 
                 const children: StockData[] = quotes.map((s: YahooLiteQuote) => ({
                     name: s.symbol.replace('.NS', ''),

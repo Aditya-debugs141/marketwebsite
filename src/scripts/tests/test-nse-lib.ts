@@ -1,29 +1,37 @@
-import { NseIndia } from 'stock-nse-india';
-
-const nse = new NseIndia();
-
 async function testLib() {
     try {
-        console.log("Testing stock-nse-india...");
-        // Log all available methods to find bulk/block deal
-        console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(nse)));
+        console.log('Testing NSE endpoint via fetch...');
 
-        // Let's try to get market status first to see if it works
-        const status = await nse.getMarketStatus();
-        console.log("Market Status SUCCESS:", status.marketState);
+        const res = await fetch('https://www.nseindia.com/api/allIndices', {
+            headers: {
+                'accept': 'application/json, text/plain, */*',
+                'accept-language': 'en-US,en;q=0.9',
+                'referer': 'https://www.nseindia.com/',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+            },
+            cache: 'no-store'
+        });
 
-        // Try to fetch bulk deals if a method exists, otherwise use the protected .getDataByEndpoint method
-        if ((nse as any).getDataByEndpoint) {
-            console.log("Trying /api/historical/bulk-deals...");
-            const data = await (nse as any).getDataByEndpoint('/api/historical/bulk-deals');
-            console.log("BULK DEALS SUCCESS.");
-            console.log(data.data ? data.data.slice(0, 2) : "No .data property");
-        } else {
-            console.log("No getDataByEndpoint method exposed");
+        if (!res.ok) {
+            console.error(`NSE request failed with status ${res.status}`);
+            return;
         }
 
-    } catch (e) {
-        console.error("LIB ERROR:", e.message);
+        const payload = await res.json() as { data?: unknown[] };
+        if (Array.isArray(payload?.data)) {
+            console.log(`SUCCESS: fetched ${payload.data.length} index rows`);
+            console.log(payload.data.slice(0, 2));
+        } else {
+            console.log('No data array in payload');
+            console.log(payload);
+        }
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            console.error('LIB ERROR:', e.message);
+        } else {
+            console.error('LIB ERROR:', e);
+        }
     }
 }
+
 testLib();

@@ -1,30 +1,32 @@
-import { NseIndia } from 'stock-nse-india';
-
-const nse = new NseIndia();
-
 async function testNSE() {
-    console.log("Testing stock-nse-india...");
+    console.log('Testing NSE endpoint via fetch...');
     try {
-        const indices = await nse.getAllStockSymbols();
-        console.log("Got symbols, length:", indices.length);
+        const res = await fetch('https://www.nseindia.com/api/allIndices', {
+            headers: {
+                'accept': 'application/json, text/plain, */*',
+                'accept-language': 'en-US,en;q=0.9',
+                'referer': 'https://www.nseindia.com/',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+            },
+            cache: 'no-store'
+        });
 
-        // Try getting live index data
-        // The library documentation says: nse.getEquityStockIndices(symbol)
-        // But for the INDEX itself, we often check 'Live Market' -> 'Index'
+        if (!res.ok) {
+            console.error(`NSE request failed with status ${res.status}`);
+            return;
+        }
 
-        // Let's try getting all index details
-        const indexData = await nse.getDataByEndpoint('/api/allIndices');
-        // console.log("Index Data received:", JSON.stringify(indexData)); 
-        if (indexData && indexData.data) {
-            const first = indexData.data[0];
-            console.log("First Item Keys:", Object.keys(first));
-            console.log("Sample:", first);
+        const payload = await res.json() as { data?: Array<Record<string, unknown>> };
+        if (Array.isArray(payload?.data) && payload.data.length > 0) {
+            const first = payload.data[0];
+            console.log('First Item Keys:', Object.keys(first));
+            console.log('Sample:', first);
         }
     } catch (e: unknown) {
         if (e instanceof Error) {
-            console.error("NSE Test Failed:", e.message);
+            console.error('NSE Test Failed:', e.message);
         } else {
-            console.error("NSE Test Failed:", e);
+            console.error('NSE Test Failed:', e);
         }
     }
 }

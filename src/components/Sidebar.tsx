@@ -5,7 +5,6 @@ import {
     LayoutDashboard,
     Activity,
     Radar,
-    Layers,
     MessageSquareText,
     Briefcase,
     Bell,
@@ -14,7 +13,7 @@ import {
 import { useState } from 'react';
 
 export function Sidebar() {
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const [, setHoveredIndex] = useState<number | null>(null);
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', href: '#dashboard', active: true },

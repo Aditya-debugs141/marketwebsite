@@ -43,13 +43,15 @@ export const SmartMoneyRadar = () => {
     }
 
     return (
-        <div className="mt-8 p-5 bg-gradient-to-br from-electric/10 to-transparent border border-electric/20 rounded-xl relative overflow-hidden group">
+        <section className="mt-10 pt-5 border-t border-dashed border-white/15">
+            <div className="p-5 bg-gradient-to-br from-violet-500/10 via-black/35 to-transparent border border-violet-400/25 rounded-2xl relative overflow-hidden group shadow-[0_12px_40px_rgba(124,58,237,0.12)]">
             <div className="absolute -right-10 -top-10 w-32 h-32 bg-electric/20 blur-3xl rounded-full" />
+            <div className="absolute -left-8 -bottom-8 w-28 h-28 bg-violet-500/20 blur-3xl rounded-full" />
 
             <div className="flex items-center gap-2 mb-4 relative z-10">
-                <Target className="w-5 h-5 text-electric" />
+                <Target className="w-5 h-5 text-violet-300" />
                 <h3 className="text-lg font-bold text-white uppercase tracking-wider">Smart Money Radar</h3>
-                <span className="ml-2 text-[10px] bg-electric/20 text-electric px-2 py-0.5 rounded font-bold uppercase">Daily Accumulation</span>
+                <span className="ml-2 text-[10px] bg-violet-500/20 text-violet-200 px-2 py-0.5 rounded font-bold uppercase">Daily Accumulation</span>
             </div>
 
             <div className="space-y-3 relative z-10">
@@ -64,7 +66,7 @@ export const SmartMoneyRadar = () => {
                     };
 
                     return (
-                        <div key={item.ticker} className="flex justify-between items-center p-3 bg-black/40 rounded-lg border border-white/5">
+                        <div key={item.ticker} className="flex justify-between items-center p-3 bg-black/45 rounded-lg border border-white/10 hover:border-violet-400/20 transition-colors">
                             <div className="flex items-center gap-3">
                                 <span className="text-gray-500 font-mono font-bold text-sm">{(index + 1).toString().padStart(2, '0')}</span>
                                 <div>
@@ -89,7 +91,7 @@ export const SmartMoneyRadar = () => {
                                 </div>
                                 <button
                                     onClick={handleViewNews}
-                                    className="ml-2 p-2 hover:bg-electric/20 rounded-lg transition-colors text-electric hover:text-electric duration-200"
+                                    className="ml-2 p-2 hover:bg-violet-500/20 rounded-lg transition-colors text-violet-300 hover:text-violet-200 duration-200"
                                     title="View related news"
                                 >
                                     <Newspaper className="w-4 h-4" />
@@ -99,6 +101,7 @@ export const SmartMoneyRadar = () => {
                     );
                 })}
             </div>
-        </div>
+            </div>
+        </section>
     );
 };

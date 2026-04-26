@@ -15,7 +15,7 @@ export async function fetchMoneyControlDeals(): Promise<Omit<DealData, 'id'>[]> 
 
     return new Promise((resolve) => {
         const scriptPath = path.join(process.cwd(), 'python_deal_scraper.py');
-        exec(`python "${scriptPath}"`, (error, stdout, stderr) => {
+        exec(`python "${scriptPath}"`, (error, stdout) => {
             isFetching = false;
 
             if (error) {

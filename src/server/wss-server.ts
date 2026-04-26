@@ -25,7 +25,18 @@ process.on('unhandledRejection', (reason) => {
     console.error('UNHANDLED REJECTION:', reason);
 });
 
-import { fetchSectorData, SectorData, fetchDeepMarketData, MarketHierarchy } from '../lib/market-service';
+import { fetchSectorData, SectorData, MarketHierarchy } from '../lib/market-service';
+import { AngelOneService } from './angel-one-service';
+import { getFastHeatmapData } from './heatmap-aggregator';
+
+const angelService = new AngelOneService();
+const angelConfigured = angelService.isConfigured();
+// Initialize Angel One login
+if (angelConfigured) {
+    angelService.login().catch(err => console.error('Angel One Init Failed:', err));
+} else {
+    console.warn('Angel One credentials not configured. Running with fallback index prices.');
+}
 
 // State
 let lastNewsTime = 0;
@@ -103,21 +114,59 @@ async function runJobs() {
     io.emit('market_status', status);
 
     // 1. Price Updates - ONLY if Market is Open
-    if (status.isOpen) {
-        // Simulated Tick for Demo (Replaced with Real API in Phase 4)
-        const niftyPrice = 22011.63 + (Math.random() * 10 - 5);
-        io.emit('price_update', {
-            symbol: '^NSEI',
-            price: niftyPrice.toFixed(2),
-            timestamp: new Date().toISOString()
-        });
+    // Or if we just want to test real data regardless of market hours for now
+    if (true) { // Changed to true for testing, revert to status.isOpen later
+        try {
+            // Fetch Real NIFTY Data
+            const niftyLtp = angelConfigured ? await angelService.getMarketData('NIFTY') : null;
+            if (niftyLtp) {
+                io.emit('price_update', {
+                    symbol: '^NSEI', // Keep Yahoo symbol for frontend compatibility
+                    price: niftyLtp,
+                    change: 0, // Angel One LTP doesn't give change directly here, would need previous close
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                 // Fallback to simulated if Angel One fails or returns null
+                 const niftyPrice = 22011.63 + (Math.random() * 10 - 5);
+                 io.emit('price_update', {
+                     symbol: '^NSEI',
+                     price: Math.round(niftyPrice * 100) / 100,
+                     timestamp: new Date().toISOString()
+                 });
+            }
 
-        const sensexPrice = 72400 + (Math.random() * 20 - 10);
-        io.emit('price_update', {
-            symbol: '^BSESN',
-            price: sensexPrice.toFixed(2),
-            timestamp: new Date().toISOString()
-        });
+            // Fetch Real SENSEX Data
+            const sensexLtp = angelConfigured ? await angelService.getMarketData('SENSEX') : null;
+             if (sensexLtp) {
+                io.emit('price_update', {
+                    symbol: '^BSESN',
+                    price: sensexLtp,
+                    change: 0,
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                 const sensexPrice = 72400 + (Math.random() * 20 - 10);
+                 io.emit('price_update', {
+                     symbol: '^BSESN',
+                     price: Math.round(sensexPrice * 100) / 100,
+                     timestamp: new Date().toISOString()
+                 });
+            }
+
+            // Fetch Real BANK NIFTY Data
+            const bankNiftyLtp = angelConfigured ? await angelService.getMarketData('BANKNIFTY') : null;
+            if (bankNiftyLtp) {
+                io.emit('price_update', {
+                    symbol: '^NSEBANK',
+                    price: bankNiftyLtp,
+                    change: 0,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        } catch (error) {
+            console.error('Price Update Error:', error);
+        }
     }
 
     // 2. Sector Heatmap Data (Every 15s for faster real-time updates)
@@ -156,15 +205,15 @@ async function runJobs() {
         }
     }
 
-    // 4. Deep Market Heatmap (Every 60s to balance speed with Yahoo 429 limits)
-    if (!isFetchingHeatmap && now - lastHeatmapTime > 60000) {
+    // 4. Deep Market Heatmap (Every 15s for near real-time updates with provider race + cache)
+    if (!isFetchingHeatmap && now - lastHeatmapTime > 15000) {
         isFetchingHeatmap = true;
         try {
-            console.log(`[${status.timestamp}] Fetching Deep Market Data...`);
-            const heatmapData = await fetchDeepMarketData();
+            const result = await getFastHeatmapData({ allowStaleWhileRefreshing: true });
+            const heatmapData = result.data;
 
             if (heatmapData.length > 0) {
-                console.log(`[${status.timestamp}] Emitting Heatmap Data: ${heatmapData.length} sectors`);
+                console.log(`[${status.timestamp}] Emitting Heatmap Data: ${heatmapData.length} sectors (${result.source}${result.stale ? ', stale' : ''})`);
                 lastHeatmapData = heatmapData;
                 io.emit('heatmap_update', heatmapData);
             } else {

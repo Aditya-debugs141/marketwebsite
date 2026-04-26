@@ -49,24 +49,29 @@ export const BlockBulkDealTracker = () => {
     const alerts = deals.filter(d => d.alert); // Highest priority smart alerts
 
     return (
-        <div className="w-full flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                    <Activity className="text-electric" /> Block & Bulk Tracker
-                </h2>
-                <button
-                    onClick={fetchDeals}
-                    disabled={loading}
-                    className="text-xs text-gray-400 hover:text-white flex items-center gap-1 disabled:opacity-50"
-                >
-                    <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-                    {mounted ? (lastUpdated ? lastUpdated.toLocaleTimeString() : 'Loading...') : 'Loading...'}
-                </button>
+        <section className="w-full rounded-2xl border border-cyan-500/15 bg-gradient-to-b from-cyan-500/[0.08] via-black/50 to-black/40 shadow-[0_10px_40px_rgba(6,182,212,0.08)] overflow-hidden">
+            <div className="px-4 pt-4 pb-3 border-b border-white/10 bg-black/30">
+                <div className="flex justify-between items-center gap-2">
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                        <Activity className="text-electric" /> Block & Bulk Tracker
+                    </h2>
+                    <button
+                        onClick={fetchDeals}
+                        disabled={loading}
+                        className="text-xs text-gray-400 hover:text-white flex items-center gap-1 disabled:opacity-50"
+                    >
+                        <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                        {mounted ? (lastUpdated ? lastUpdated.toLocaleTimeString() : 'Loading...') : 'Loading...'}
+                    </button>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">Institutional deal tape • Auto-refresh every 10s</p>
             </div>
+
+            <div className="p-4 flex flex-col gap-4">
 
             {/* Smart Alerts Banner */}
             {alerts.length > 0 && filter === 'all' && (
-                <div className="mb-2 max-h-40 overflow-y-auto pr-2 space-y-2 scrollbar-thin scrollbar-thumb-yellow-500/20 scrollbar-track-transparent">
+                <div className="mb-2 max-h-40 overflow-y-auto pr-2 space-y-2 rounded-xl border border-yellow-500/20 bg-yellow-500/[0.06] p-3 scrollbar-thin scrollbar-thumb-yellow-500/20 scrollbar-track-transparent">
                     {alerts.map((a, i) => (
                         <div key={i} className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-3 flex items-start gap-3">
                             <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
@@ -79,9 +84,11 @@ export const BlockBulkDealTracker = () => {
                 </div>
             )}
 
-            <DealFilters currentFilter={filter} onFilterChange={setFilter} />
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <DealFilters currentFilter={filter} onFilterChange={setFilter} />
+            </div>
 
-            <div className="flex-1 bg-black/20 rounded-xl border border-white/5 overflow-hidden flex flex-col min-h-[500px] max-h-[700px]">
+            <div className="flex-1 bg-black/40 rounded-xl border border-white/10 overflow-hidden flex flex-col min-h-[500px] max-h-[700px]">
                 {loading && deals.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center">
                         <div className="w-6 h-6 border-2 border-electric border-t-transparent rounded-full animate-spin" />
@@ -100,6 +107,7 @@ export const BlockBulkDealTracker = () => {
                     </div>
                 )}
             </div>
-        </div>
+            </div>
+        </section>
     );
 };

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { fetchDeepMarketData } from '@/lib/market-service';
+import { fetchDeepMarketData, MarketHierarchy } from '@/lib/market-service';
+import { fetchNseHeatmapData } from '@/lib/nse-heatmap-service';
 
 // Fallback dummy data (shown when Yahoo Finance is rate-limited)
 const FALLBACK_DATA = [
@@ -57,57 +58,78 @@ const FALLBACK_DATA = [
     },
 ];
 
-let cachedData: typeof FALLBACK_DATA | null = null;
+let cachedData: MarketHierarchy[] | null = null;
 let cacheTime = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 min cache
-const HEATMAP_TIMEOUT_MS = 12000;
+const CACHE_TTL = 5 * 60 * 1000; // 5 min
+let inFlightHeatmapFetch: Promise<{ data: MarketHierarchy[]; source: 'nse' | 'yahoo' | 'fallback' }> | null = null;
 
-let inFlightHeatmapFetch: Promise<typeof FALLBACK_DATA> | null = null;
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
     return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+        const timer = setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs);
         promise
             .then((value) => {
                 clearTimeout(timer);
                 resolve(value);
             })
-            .catch((error) => {
+            .catch((e) => {
                 clearTimeout(timer);
-                reject(error);
+                reject(e);
             });
     });
 }
 
-async function fetchHeatmapSafe(): Promise<typeof FALLBACK_DATA> {
+async function getFastApiHeatmap(): Promise<{ data: MarketHierarchy[]; source: 'nse' | 'yahoo' | 'fallback' }> {
     if (inFlightHeatmapFetch) {
         return inFlightHeatmapFetch;
     }
 
-    inFlightHeatmapFetch = withTimeout(fetchDeepMarketData(), HEATMAP_TIMEOUT_MS, 'fetchDeepMarketData')
-        .then((data) => data as typeof FALLBACK_DATA)
-        .finally(() => {
-            inFlightHeatmapFetch = null;
-        });
+    const nsePromise = withTimeout(fetchNseHeatmapData(), 2200).catch(() => [] as MarketHierarchy[]);
+    const yahooPromise = withTimeout(fetchDeepMarketData(), 3500).catch(() => [] as MarketHierarchy[]);
+
+    inFlightHeatmapFetch = (async () => {
+        const [nseData, yahooData] = await Promise.all([nsePromise, yahooPromise]);
+
+        if (Array.isArray(nseData) && nseData.length > 0) {
+            return { data: nseData, source: 'nse' as const };
+        }
+
+        if (Array.isArray(yahooData) && yahooData.length > 0) {
+            return { data: yahooData, source: 'yahoo' as const };
+        }
+
+        return { data: FALLBACK_DATA, source: 'fallback' as const };
+    })().finally(() => {
+        inFlightHeatmapFetch = null;
+    });
 
     return inFlightHeatmapFetch;
 }
 
 export async function GET() {
-    // Return cache immediately if still fresh.
+    // Fast path: fresh cache
     if (cachedData && Date.now() - cacheTime < CACHE_TTL) {
-        return NextResponse.json({ data: cachedData, source: 'cache' });
+        return NextResponse.json({
+            data: cachedData,
+            source: 'cache',
+            stale: false
+        });
     }
 
     try {
-        const data = await fetchHeatmapSafe();
-        if (data && data.length > 0) {
-            cachedData = data as typeof FALLBACK_DATA;
+        const result = await getFastApiHeatmap();
+
+        if (result.source !== 'fallback' && result.data.length > 0) {
+            cachedData = result.data;
             cacheTime = Date.now();
-            return NextResponse.json({ data, source: 'live' });
         }
+
+        return NextResponse.json({
+            data: result.data,
+            source: result.source,
+            stale: result.source === 'fallback'
+        });
     } catch (e) {
-        console.error('[API/heatmap] fetchDeepMarketData failed:', e);
+        console.error('[API/heatmap] failed:', e);
 
         if (cachedData && cachedData.length > 0) {
             return NextResponse.json({

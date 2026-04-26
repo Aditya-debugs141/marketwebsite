@@ -1,0 +1,4 @@
+{
+    "thunder-client.AI.provider": "anthropic",
+    "gitlens.ai.model": "vscode"
+}

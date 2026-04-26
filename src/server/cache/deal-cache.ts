@@ -11,6 +11,7 @@ export interface DealData {
     price: number;
     valueCr: number;
     stakePercent: number;
+    marketTimestamp?: number;
     timestamp: number;
     source: 'NSE' | 'BSE';
 }
@@ -42,7 +43,8 @@ class DealCache {
 
         // Cleanup old deals
         for (const [key, deal] of this.deals.entries()) {
-            if (now - deal.timestamp > this.SEVEN_DAYS_MS) {
+            const effectiveTs = deal.marketTimestamp ?? deal.timestamp;
+            if (now - effectiveTs > this.SEVEN_DAYS_MS) {
                 this.deals.delete(key);
             }
         }
@@ -58,7 +60,7 @@ class DealCache {
 
     public getRecentDeals(count: number = 50): DealData[] {
         return Array.from(this.deals.values())
-            .sort((a, b) => b.timestamp - a.timestamp)
+            .sort((a, b) => (b.marketTimestamp ?? b.timestamp) - (a.marketTimestamp ?? a.timestamp))
             .slice(0, count);
     }
 

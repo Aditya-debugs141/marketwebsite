@@ -1,4 +1,4 @@
-import { fetchMoneyControlDeals } from './src/server/data-sources/mc-deals';
+import { fetchMoneyControlDeals } from '../../server/data-sources/mc-deals';
 
 async function testNodeToPython() {
     console.log("Starting script test...");

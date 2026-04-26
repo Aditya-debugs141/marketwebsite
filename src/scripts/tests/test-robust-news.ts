@@ -5,8 +5,8 @@ async function main() {
 
     const startTime = Date.now();
     
-    // Pass true to enable structured logs to console
-    const uniqueNews = await fetchNews(true);
+    // fetchNews doesn't take any parameters
+    const uniqueNews = await fetchNews();
 
     const endTime = Date.now();
     
