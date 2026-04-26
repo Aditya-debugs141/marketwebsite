@@ -1,41 +1,48 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Build output
+.next/
+out/
+dist/
+build/
 
-# testing
-/coverage
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# next.js
-/.next/
-/out/
+# Logs and debug output
+logs/
+*.log
+dev.log
+dev_error.txt
+error.log
+build-output.txt
+diagnostic-lint.txt
+test-output.json
+test-output.txt
 
-# production
-/build
+# TypeScript build cache
+tsconfig.tsbuildinfo
 
-# misc
+# Test files
+test-angel-credentials.js
+
+# Large binary/generated files
+*.vsix
+*.zip
+*.exe
+*.dll
+
+# Diagnosis / temporary reports
+PROJECT_DIAGNOSIS_REPORT.md
+ISSUES_REPORT.md
+
+# OS
 .DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+Thumbs.db
